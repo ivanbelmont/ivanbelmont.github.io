@@ -305,12 +305,38 @@
             opacity: 0.7;
             margin-right: 20px;
         }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .instructions p {
+            margin-bottom: 8px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <div class="logo">🎵 Rain Music | Por Cris de 5B</div>
+            <div class="logo">🌧️ Rain Music</div>
             <div class="menu-item active">🏠 Inicio</div>
             <div class="menu-item">🔍 Buscar</div>
             <div class="menu-item">📚 Tu Biblioteca</div>
@@ -319,6 +345,17 @@
 
         <div class="main-content">
             <h1>Música Relajante</h1>
+
+            <div class="instructions">
+                <h3>📁 Cómo agregar tus archivos MP3</h3>
+                <p>1. Crea una carpeta llamada <code>music</code> en tu repositorio</p>
+                <p>2. Sube tus archivos MP3 con estos nombres:</p>
+                <p>   • <code>rain.mp3</code> - para "Lluvia Suave"</p>
+                <p>   • <code>ocean.mp3</code> - para "Olas del Océano"</p>
+                <p>   • <code>forest.mp3</code> - para "Bosque Tranquilo"</p>
+                <p>   • <code>waterfall.mp3</code> - para "Cascada Relajante"</p>
+                <p>3. ¡Recarga la página y disfruta de tu música! 🎵</p>
+            </div>
             
             <div class="playlists">
                 <div class="playlist-card" onclick="loadPlaylist('nature')">
@@ -354,7 +391,7 @@
             <div class="player-cover" id="playerCover">🎵</div>
             <div class="player-details">
                 <h3 id="playerTitle">Selecciona una canción</h3>
-                <p id="playerArtist">RelaxTunes</p>
+                <p id="playerArtist">Rain Music</p>
             </div>
         </div>
 
@@ -363,7 +400,7 @@
                 <button class="control-btn" onclick="previousSong()">⏮</button>
                 <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
                 <button class="control-btn" onclick="nextSong()">⏭</button>
-                <button class="control-btn" onclick="toggleRepeat()">🔁</button>
+                <button class="control-btn" id="repeatBtn" onclick="toggleRepeat()">🔁</button>
             </div>
             <div class="progress-bar">
                 <span class="time" id="currentTime">0:00</span>
@@ -375,47 +412,74 @@
         </div>
 
         <div class="player-volume">
-            <button class="control-btn" onclick="toggleMute()">🔊</button>
+            <button class="control-btn" id="muteBtn" onclick="toggleMute()">🔊</button>
             <div class="volume-bar" onclick="changeVolume(event)">
                 <div class="volume-progress" id="volumeProgress"></div>
             </div>
         </div>
     </div>
 
+    <audio id="audioPlayer"></audio>
+
     <script>
         const playlists = {
             nature: [
-                { title: 'Lluvia Suave', artist: 'Sonidos Naturales', duration: 300, emoji: '🌧️' },
-                { title: 'Olas del Océano', artist: 'Sonidos Naturales', duration: 420, emoji: '🌊' },
-                { title: 'Bosque Tranquilo', artist: 'Sonidos Naturales', duration: 360, emoji: '🌲' },
-                { title: 'Cascada Relajante', artist: 'Sonidos Naturales', duration: 390, emoji: '💧' }
+                { title: 'Lluvia Suave', artist: 'Sonidos Naturales', file: 'music/rain.mp3', emoji: '🌧️' },
+                { title: 'Olas del Océano', artist: 'Sonidos Naturales', file: 'music/ocean.mp3', emoji: '🌊' },
+                { title: 'Bosque Tranquilo', artist: 'Sonidos Naturales', file: 'music/forest.mp3', emoji: '🌲' },
+                { title: 'Cascada Relajante', artist: 'Sonidos Naturales', file: 'music/waterfall.mp3', emoji: '💧' }
             ],
             meditation: [
-                { title: 'Paz Interior', artist: 'Meditación Zen', duration: 480, emoji: '🧘' },
-                { title: 'Chakras Balance', artist: 'Meditación Zen', duration: 540, emoji: '💜' },
-                { title: 'Mindfulness', artist: 'Meditación Zen', duration: 600, emoji: '🕉️' }
+                { title: 'Paz Interior', artist: 'Meditación Zen', file: 'music/peace.mp3', emoji: '🧘' },
+                { title: 'Chakras Balance', artist: 'Meditación Zen', file: 'music/chakras.mp3', emoji: '💜' },
+                { title: 'Mindfulness', artist: 'Meditación Zen', file: 'music/mindfulness.mp3', emoji: '🕉️' }
             ],
             sleep: [
-                { title: 'Sueños Profundos', artist: 'Sleep Music', duration: 720, emoji: '😴' },
-                { title: 'Noche Estrellada', artist: 'Sleep Music', duration: 660, emoji: '✨' },
-                { title: 'Descanso Total', artist: 'Sleep Music', duration: 780, emoji: '🌙' }
+                { title: 'Sueños Profundos', artist: 'Sleep Music', file: 'music/deep-sleep.mp3', emoji: '😴' },
+                { title: 'Noche Estrellada', artist: 'Sleep Music', file: 'music/starry-night.mp3', emoji: '✨' },
+                { title: 'Descanso Total', artist: 'Sleep Music', file: 'music/total-rest.mp3', emoji: '🌙' }
             ],
             piano: [
-                { title: 'Melodía Nocturna', artist: 'Piano Clásico', duration: 240, emoji: '🎹' },
-                { title: 'Serenata', artist: 'Piano Clásico', duration: 280, emoji: '🎼' },
-                { title: 'Amanecer', artist: 'Piano Clásico', duration: 320, emoji: '🌅' }
+                { title: 'Melodía Nocturna', artist: 'Piano Clásico', file: 'music/nocturnal.mp3', emoji: '🎹' },
+                { title: 'Serenata', artist: 'Piano Clásico', file: 'music/serenade.mp3', emoji: '🎼' },
+                { title: 'Amanecer', artist: 'Piano Clásico', file: 'music/sunrise.mp3', emoji: '🌅' }
             ]
         };
 
+        const audio = document.getElementById('audioPlayer');
         let currentPlaylist = playlists.nature;
         let currentSongIndex = 0;
-        let isPlaying = false;
-        let currentTime = 0;
-        let duration = 0;
-        let volume = 0.7;
-        let isMuted = false;
         let isRepeat = false;
-        let intervalId = null;
+
+        audio.volume = 0.7;
+
+        // Event Listeners del reproductor de audio
+        audio.addEventListener('loadedmetadata', () => {
+            document.getElementById('totalTime').textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            const percentage = (audio.currentTime / audio.duration) * 100;
+            document.getElementById('progress').style.width = percentage + '%';
+            document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('ended', () => {
+            if (isRepeat) {
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                nextSong();
+            }
+        });
+
+        audio.addEventListener('play', () => {
+            document.getElementById('playBtn').textContent = '⏸';
+        });
+
+        audio.addEventListener('pause', () => {
+            document.getElementById('playBtn').textContent = '▶';
+        });
 
         function loadPlaylist(type) {
             currentPlaylist = playlists[type];
@@ -436,7 +500,7 @@
                             <div class="song-title">${song.emoji} ${song.title}</div>
                             <div class="song-artist">${song.artist}</div>
                         </div>
-                        <div class="song-duration">${formatTime(song.duration)}</div>
+                        <div class="song-duration">--:--</div>
                     </div>
                 `;
             });
@@ -454,83 +518,31 @@
             document.getElementById('playerArtist').textContent = song.artist;
             document.getElementById('playerCover').textContent = song.emoji;
             
-            currentTime = 0;
-            duration = song.duration;
-            
-            document.getElementById('totalTime').textContent = formatTime(duration);
-            document.getElementById('currentTime').textContent = formatTime(0);
-            document.getElementById('progress').style.width = '0%';
+            audio.src = song.file;
+            audio.load();
             
             renderSongs();
-            
-            if (isPlaying) {
-                play();
-            }
         }
 
         function togglePlay() {
-            if (isPlaying) {
-                pause();
+            if (audio.paused) {
+                audio.play().catch(err => {
+                    console.log('No se pudo reproducir:', err);
+                    alert('No se pudo cargar el archivo de audio. Asegúrate de que los archivos MP3 estén en la carpeta "music".');
+                });
             } else {
-                play();
+                audio.pause();
             }
-        }
-
-        function play() {
-            isPlaying = true;
-            document.getElementById('playBtn').textContent = '⏸';
-            
-            if (intervalId) clearInterval(intervalId);
-            
-            intervalId = setInterval(() => {
-                currentTime++;
-                
-                if (currentTime >= duration) {
-                    if (isRepeat) {
-                        currentTime = 0;
-                    } else {
-                        nextSong();
-                    }
-                }
-                
-                updateProgress();
-            }, 1000);
-        }
-
-        function pause() {
-            isPlaying = false;
-            document.getElementById('playBtn').textContent = '▶';
-            
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-        }
-
-        function updateProgress() {
-            const percentage = (currentTime / duration) * 100;
-            document.getElementById('progress').style.width = percentage + '%';
-            document.getElementById('currentTime').textContent = formatTime(currentTime);
-        }
-
-        function seek(event) {
-            const bar = event.currentTarget;
-            const rect = bar.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const percentage = x / rect.width;
-            
-            currentTime = Math.floor(duration * percentage);
-            updateProgress();
         }
 
         function previousSong() {
-            if (currentTime > 3) {
-                currentTime = 0;
-                updateProgress();
+            if (audio.currentTime > 3) {
+                audio.currentTime = 0;
             } else {
                 let newIndex = currentSongIndex - 1;
                 if (newIndex < 0) newIndex = currentPlaylist.length - 1;
                 loadSong(newIndex);
+                if (!audio.paused) audio.play();
             }
         }
 
@@ -538,21 +550,24 @@
             let newIndex = currentSongIndex + 1;
             if (newIndex >= currentPlaylist.length) newIndex = 0;
             loadSong(newIndex);
+            if (!audio.paused) audio.play();
         }
 
         function toggleRepeat() {
             isRepeat = !isRepeat;
-            event.target.style.opacity = isRepeat ? '1' : '0.6';
+            const repeatBtn = document.getElementById('repeatBtn');
+            repeatBtn.style.opacity = isRepeat ? '1' : '0.6';
         }
 
         function toggleMute() {
-            isMuted = !isMuted;
-            if (isMuted) {
+            audio.muted = !audio.muted;
+            const muteBtn = document.getElementById('muteBtn');
+            if (audio.muted) {
                 document.getElementById('volumeProgress').style.width = '0%';
-                event.target.textContent = '🔇';
+                muteBtn.textContent = '🔇';
             } else {
-                document.getElementById('volumeProgress').style.width = (volume * 100) + '%';
-                event.target.textContent = '🔊';
+                document.getElementById('volumeProgress').style.width = (audio.volume * 100) + '%';
+                muteBtn.textContent = '🔊';
             }
         }
 
@@ -562,14 +577,24 @@
             const x = event.clientX - rect.left;
             const percentage = x / rect.width;
             
-            volume = percentage;
-            isMuted = false;
+            audio.volume = percentage;
+            audio.muted = false;
             
             document.getElementById('volumeProgress').style.width = (percentage * 100) + '%';
-            document.querySelector('.player-volume .control-btn').textContent = '🔊';
+            document.getElementById('muteBtn').textContent = '🔊';
+        }
+
+        function seek(event) {
+            const bar = event.currentTarget;
+            const rect = bar.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = x / rect.width;
+            
+            audio.currentTime = audio.duration * percentage;
         }
 
         function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
